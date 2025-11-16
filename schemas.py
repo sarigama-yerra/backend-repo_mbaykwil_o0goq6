@@ -1,48 +1,56 @@
 """
 Database Schemas
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
-
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+Pydantic models that define your MongoDB collections.
+Each model name maps to a collection with the lowercase name.
+Example: class User -> collection "user"
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, HttpUrl, EmailStr
+from typing import Optional, List
 
-# Example schemas (replace with your own):
+# Core marketing site content
 
+class Service(BaseModel):
+    title: str = Field(..., description="Service name")
+    slug: str = Field(..., description="URL-friendly identifier")
+    short: str = Field(..., description="Short blurb")
+    description: Optional[str] = Field(None, description="Detailed description")
+    icon: Optional[str] = Field(None, description="Lucide icon name")
+    featured: bool = Field(False, description="Show in homepage highlights")
+
+class Project(BaseModel):
+    title: str = Field(...)
+    slug: str = Field(...)
+    summary: str = Field(...)
+    image: Optional[HttpUrl] = None
+    tags: List[str] = Field(default_factory=list)
+    link: Optional[HttpUrl] = None
+    featured: bool = Field(False)
+
+class Testimonial(BaseModel):
+    author: str = Field(...)
+    role: Optional[str] = None
+    quote: str = Field(...)
+    company: Optional[str] = None
+    avatar: Optional[HttpUrl] = None
+    featured: bool = Field(True)
+
+class Inquiry(BaseModel):
+    name: str = Field(...)
+    email: EmailStr = Field(...)
+    phone: Optional[str] = None
+    company: Optional[str] = None
+    message: str = Field(..., min_length=5)
+    source: Optional[str] = Field(None, description="Where the user came from")
+
+# Example generic collections kept for reference (not used by the site directly)
 class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    name: str
+    email: EmailStr
+    is_active: bool = True
 
 class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
-
-# Add your own schemas here:
-# --------------------------------------------------
-
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+    title: str
+    price: float
+    in_stock: bool = True
